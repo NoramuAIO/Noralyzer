@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Kart Düzenle - Noralyzer{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-pencil-square"></i> Kart Düzenle</h1>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-group">
+                <label class="form-label">Kart Adı *</label>
+                <input type="text" name="name" class="form-control" required value="{{ card.name }}">
+            </div>
+            
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label class="form-label">Tür</label>
+                    <select name="card_type" class="form-select">
+                        <option value="credit" {% if card.card_type == 'credit' %}selected{% endif %}>Kredi Kartı</option>
+                        <option value="debit" {% if card.card_type == 'debit' %}selected{% endif %}>Banka/Maaş Kartı</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Son 4 Hane</label>
+                    <input type="text" name="last_four" class="form-control" maxlength="4" value="{{ card.last_four or '' }}">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Bağlı Banka</label>
+                <select name="bank_id" class="form-select">
+                    <option value="">Seçiniz...</option>
+                    {% for bank in banks %}
+                    <option value="{{ bank.id }}" {% if card.bank_id == bank.id %}selected{% endif %}>{{ bank.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-check mb-4">
+                <label class="custom-checkbox">
+                    <input type="checkbox" name="is_favorite" value="1" {% if card.is_favorite %}checked{% endif %}>
+                    <span class="checkbox-mark"></span>
+                    <span class="label-text">Favorilere Ekle</span>
+                </label>
+            </div>
+            
+            <div class="d-flex justify-end gap-2">
+                <a href="{{ url_for('cards') }}" class="btn btn-secondary">İptal</a>
+                <button type="submit" class="btn btn-primary">Güncelle</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

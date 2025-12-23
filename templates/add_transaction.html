@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Yeni İşlem - Noralyzer{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-plus-circle"></i> Yeni İşlem</h1>
+</div>
+
+{% if quick_transactions %}
+<div class="card mb-3">
+    <div class="card-header"><h3><i class="bi bi-lightning-charge"></i> Hızlı İşlemler</h3></div>
+    <div class="card-body">
+        <div class="d-flex flex-wrap gap-2">
+            {% for qt in quick_transactions %}
+            <form action="{{ url_for('use_quick_transaction', id=qt.id) }}" method="POST">
+                <button type="submit" class="btn btn-secondary btn-sm">
+                    <i class="bi bi-lightning"></i> {{ qt.name }}
+                    {% if qt.amount %}({{ "%.2f"|format(qt.amount) }}){% endif %}
+                </button>
+            </form>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <!-- Transaction Owner Selection (Prominent & Beautiful) -->
+            <div class="owner-selection-box mb-4">
+                <div class="owner-selection-header">
+                    <div class="owner-icon-wrapper">
+                        <i class="bi bi-person-badge-fill"></i>
+                    </div>
+                    <div>
+                        <h3 class="owner-title">İşlemi Yapan Kişi</h3>
+                        <p class="owner-subtitle">Bu işlem kimin hesabına kaydedilsin?</p>
+                    </div>
+                </div>
+                <div class="owner-options">
+                    {% for p in persons %}
+                    <label class="owner-option">
+                        <input type="radio" name="owner_id" value="{{ p.id }}" {% if request.args.get('owner_id') == p.id|string or (loop.first and not request.args.get('owner_id')) %}checked{% endif %}>
+                        <span class="owner-option-content">
+                            <span class="owner-avatar" style="background: linear-gradient(135deg, hsl({{ loop.index0 * 60 }}, 70%, 50%), hsl({{ loop.index0 * 60 + 30 }}, 70%, 40%));">
+                                {{ p.name[:1] }}
+                            </span>
+                            <span class="owner-name">{{ p.name }}</span>
+                            {% if p.is_favorite %}<i class="bi bi-star-fill text-warning text-xs"></i>{% endif %}
+                        </span>
+                    </label>
+                    {% endfor %}
+                    <label class="owner-option">
+                        <input type="radio" name="owner_id" value="">
+                        <span class="owner-option-content">
+                            <span class="owner-avatar" style="background: linear-gradient(135deg, #64748b, #475569);">
+                                <i class="bi bi-house-fill"></i>
+                            </span>
+                            <span class="owner-name">Genel</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid grid-3 mb-3">
+                <div class="form-group">
+                    <label class="form-label">İşlem Türü *</label>
+                    <select name="transaction_type" class="form-select" required>
+                        {% for value, label in transaction_types %}
+                        <option value="{{ value }}" {% if request.args.get('transaction_type') == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tutar *</label>
+                    <input type="number" name="amount" class="form-control" step="0.01" required value="{{ request.args.get('amount', '') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Para Birimi *</label>
+                    <select name="currency" class="form-select" required>
+                        <optgroup label="Döviz">{% for c in currencies.fiat %}<option value="{{ c }}" {% if request.args.get('currency') == c %}selected{% endif %}>{{ currency_names[c] }}</option>{% endfor %}</optgroup>
+                        <optgroup label="Kripto">{% for c in currencies.crypto %}<option value="{{ c }}" {% if request.args.get('currency') == c %}selected{% endif %}>{{ currency_names[c] }}</option>{% endfor %}</optgroup>
+                        <optgroup label="Altın">{% for c in currencies.gold %}<option value="{{ c }}" {% if request.args.get('currency') == c %}selected{% endif %}>{{ currency_names[c] }}</option>{% endfor %}</optgroup>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="grid grid-4 mb-3">
+                <div class="form-group">
+                    <label class="form-label">Açıklama</label>
+                    <input type="text" name="description" class="form-control" value="{{ request.args.get('description', '') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tarih</label>
+                    <input type="date" name="date" class="form-control" value="{{ request.args.get('date', '') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Saat</label>
+                    <input type="time" name="time" class="form-control" value="{{ request.args.get('time', '') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kategori</label>
+                    <select name="category_id" class="form-select">
+                        <option value="">Seçiniz</option>
+                        {% for c in categories %}<option value="{{ c.id }}" {% if request.args.get('category_id') == c.id|string %}selected{% endif %}>{{ c.icon }} {{ c.name }}</option>{% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="grid grid-4 mb-3">
+                <div class="form-group">
+                    <label class="form-label">Banka</label>
+                    <select name="bank_id" class="form-select">
+                        <option value="">Seçiniz</option>
+                        {% for b in banks %}<option value="{{ b.id }}" {% if request.args.get('bank_id') == b.id|string %}selected{% endif %}>{% if b.is_favorite %}⭐{% endif %} {{ b.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kart</label>
+                    <select name="card_id" class="form-select">
+                        <option value="">Seçiniz</option>
+                        {% for c in cards %}<option value="{{ c.id }}" {% if request.args.get('card_id') == c.id|string %}selected{% endif %}>{% if c.is_favorite %}⭐{% endif %} {{ c.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kişi</label>
+                    <select name="person_id" class="form-select">
+                        <option value="">Seçiniz</option>
+                        {% for p in persons %}<option value="{{ p.id }}" {% if request.args.get('person_id') == p.id|string %}selected{% endif %}>{% if p.is_favorite %}⭐{% endif %} {{ p.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Yer</label>
+                    <select name="place_id" class="form-select">
+                        <option value="">Seçiniz</option>
+                        {% for p in places %}<option value="{{ p.id }}" {% if request.args.get('place_id') == p.id|string %}selected{% endif %}>{% if p.is_favorite %}⭐{% endif %} {{ p.name }}</option>{% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div id="transferFields" class="grid grid-2 mb-3" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label">Gönderen Banka</label>
+                    <select name="from_bank_id" class="form-select">
+                        <option value="">Seçiniz</option>
+                        {% for b in banks %}<option value="{{ b.id }}" {% if request.args.get('from_bank_id') == b.id|string %}selected{% endif %}>{{ b.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Alıcı Banka</label>
+                    <select name="to_bank_id" class="form-select">
+                        <option value="">Seçiniz</option>
+                        {% for b in banks %}<option value="{{ b.id }}" {% if request.args.get('to_bank_id') == b.id|string %}selected{% endif %}>{{ b.name }}</option>{% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            {% if tags %}
+            <div class="form-group mb-3">
+                <label class="form-label">Etiketler</label>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for tag in tags %}
+                    <label class="form-check" style="cursor: pointer;">
+                        <input type="checkbox" name="tags" value="{{ tag.id }}" class="form-check-input">
+                        <span class="badge" style="background-color: {{ tag.color }}">{{ tag.name }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check"></i> Kaydet</button>
+                <a href="{{ url_for('transactions') }}" class="btn btn-secondary">İptal</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

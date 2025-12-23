@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Kişiler - Noralyzer{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-people"></i> Kişiler</h1>
+    <a href="{{ url_for('add_person') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Yeni Kişi</a>
+</div>
+
+<div class="grid-responsive">
+    {% for person in persons %}
+    <div class="card h-100">
+        <div class="card-body d-flex flex-column gap-3">
+            <div class="d-flex justify-between align-start">
+                <div class="d-flex gap-3 align-center">
+                    <div class="avatar-placeholder rounded-circle bg-primary-subtle text-primary d-flex align-center justify-center font-weight-bold" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        {{ person.name[:2].upper() }}
+                    </div>
+                    <div>
+                        <h3 class="mb-1" style="font-size: 1.1rem;">{{ person.name }}</h3>
+                        {% if person.phone %}
+                        <p class="text-muted text-sm"><i class="bi bi-telephone me-1"></i> {{ person.phone }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <button class="btn btn-icon btn-text {{ 'text-warning' if person.is_favorite else 'text-muted' }}" onclick="toggleFavorite({{ person.id }})">
+                    <i class="bi {{ 'bi-star-fill' if person.is_favorite else 'bi-star' }}" id="star-{{ person.id }}"></i>
+                </button>
+            </div>
+
+            {% if person.note %}
+            <p class="text-muted text-sm bg-subtle p-2 rounded">{{ person.note }}</p>
+            {% endif %}
+
+            <div class="d-flex gap-2 mt-auto">
+                <a href="{{ url_for('owner_report', id=person.id) }}" class="btn btn-primary btn-sm flex-1"><i class="bi bi-list-task"></i> İşlemler</a>
+                <a href="{{ url_for('person_report', id=person.id) }}" class="btn btn-secondary btn-sm flex-1"><i class="bi bi-bar-chart"></i> Rapor</a>
+                <a href="{{ url_for('edit_person', id=person.id) }}" class="btn btn-secondary btn-icon btn-sm"><i class="bi bi-pencil"></i></a>
+                <form action="{{ url_for('delete_person', id=person.id) }}" method="POST" onsubmit="return confirm('Silmek istediğinize emin misiniz?')" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-icon btn-sm"><i class="bi bi-trash"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-body text-center py-5">
+            <div class="empty-state">
+                <i class="bi bi-people" style="font-size: 48px; margin-bottom: 20px; display: block;"></i>
+                <p class="text-muted mb-4">Henüz kayıtlı kişi yok.</p>
+                <a href="{{ url_for('add_person') }}" class="btn btn-primary">İlk Kişiyi Ekle</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleFavorite(id) {
+    fetch(`/persons/${id}/toggle-favorite`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            const icon = document.getElementById(`star-${id}`);
+            if (data.is_favorite) {
+                icon.classList.remove('bi-star');
+                icon.classList.add('bi-star-fill');
+                icon.parentElement.classList.remove('text-muted');
+                icon.parentElement.classList.add('text-warning');
+            } else {
+                icon.classList.remove('bi-star-fill');
+                icon.classList.add('bi-star');
+                icon.parentElement.classList.remove('text-warning');
+                icon.parentElement.classList.add('text-muted');
+            }
+        });
+}
+</script>
+{% endblock %}

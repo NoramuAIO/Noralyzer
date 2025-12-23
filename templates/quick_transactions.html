@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Hızlı İşlemler - Noralyzer{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-lightning-charge"></i> Hızlı İşlemler</h1>
+    <a href="{{ url_for('add_quick_transaction') }}" class="btn btn-primary"><i class="bi bi-plus"></i> Yeni Şablon</a>
+</div>
+
+<div class="grid-responsive">
+    {% for qt in quick_transactions %}
+    <div class="card h-100">
+        <div class="card-header">
+            <h3>{{ qt.name }}</h3>
+            <div class="d-flex gap-1">
+                <a href="{{ url_for('edit_quick_transaction', id=qt.id) }}" class="btn btn-secondary btn-icon btn-sm"><i class="bi bi-pencil"></i></a>
+                <!-- Silme işlemi için modal veya confirm gerekebilir ama şimdilik form kullanıyoruz -->
+            </div>
+        </div>
+        <div class="card-body d-flex flex-column h-100">
+            <div class="flex-1">
+                <p class="mb-2 text-muted">
+                    <span class="badge {% if qt.transaction_type in ['income', 'cash_in', 'bank_deposit'] %}badge-success{% else %}badge-danger{% endif %}">
+                        {{ qt.transaction_type }}
+                    </span>
+                </p>
+                {% if qt.amount %}
+                <h2 class="{% if qt.transaction_type in ['income', 'cash_in', 'bank_deposit'] %}text-success{% else %}text-danger{% endif %} mb-3">
+                    {{ qt.amount }} {{ qt.currency }}
+                </h2>
+                {% else %}
+                <p class="text-muted mb-3">Tutar girilmemiş</p>
+                {% endif %}
+                
+                {% if qt.description %}
+                <p class="text-main mb-3">{{ qt.description }}</p>
+                {% endif %}
+                
+                <div class="d-flex flex-wrap gap-1 mb-3">
+                    {% if qt.category %}<span class="badge badge-secondary">{{ qt.category.name }}</span>{% endif %}
+                    {% if qt.card %}<span class="badge badge-secondary"><i class="bi bi-credit-card"></i> {{ qt.card.name }}</span>{% endif %}
+                    {% if qt.bank %}<span class="badge badge-secondary"><i class="bi bi-bank"></i> {{ qt.bank.name }}</span>{% endif %}
+                    {% if qt.person %}<span class="badge badge-secondary"><i class="bi bi-person"></i> {{ qt.person.name }}</span>{% endif %}
+                </div>
+            </div>
+            
+            <form action="{{ url_for('use_quick_transaction', id=qt.id) }}" method="POST" class="mt-auto">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-play-fill"></i> İşlemi Ekle</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-body text-center py-5">
+            <div class="empty-state">
+                <i class="bi bi-lightning-charge" style="font-size: 48px; margin-bottom: 20px; display: block;"></i>
+                <p class="text-muted mb-4">Henüz hızlı işlem şablonu oluşturulmamış.</p>
+                <a href="{{ url_for('add_quick_transaction') }}" class="btn btn-primary">İlk Şablonu Ekle</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

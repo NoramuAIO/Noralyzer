@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Mekan Raporu: {{ place.name }} - Noralyzer{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="d-flex align-center gap-3">
+        <a href="{{ url_for('places') }}" class="btn btn-secondary btn-icon"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <h1 class="page-title"><i class="bi bi-shop"></i> {{ place.name }}</h1>
+            <p class="text-muted text-sm mt-1">
+                {% if place.category %}<i class="bi bi-tag"></i> {{ place.category }}{% endif %}
+                {% if place.address %} • <i class="bi bi-geo-alt"></i> {{ place.address }}{% endif %}
+            </p>
+        </div>
+    </div>
+    
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('edit_place', id=place.id) }}" class="btn btn-secondary text-sm"><i class="bi bi-pencil"></i> Düzenle</a>
+    </div>
+</div>
+
+<!-- STATS -->
+<div class="grid grid-responsive mb-4">
+    <div class="stat-card expense">
+        <div class="stat-card-label">Toplam Harcama</div>
+        <div class="stat-card-value text-danger">₺{{ "%.2f"|format(total_spent) }}</div>
+        <div class="text-sm text-muted mt-2">Bu mekanda yapılan toplam harcama</div>
+    </div>
+    
+    <!-- Category Breakdown Mini Card -->
+    <div class="card h-100">
+        <div class="card-body">
+            <h3 class="card-title text-sm uppercase text-muted mb-3">Kategori Dağılımı</h3>
+            <div class="d-flex flex-column gap-2">
+                {% for cat_name, amount in category_breakdown %}
+                <div class="d-flex justify-between align-center">
+                    <span>{{ cat_name }}</span>
+                    <span class="font-weight-bold">₺{{ "%.2f"|format(amount) }}</span>
+                </div>
+                <!-- Mini bar -->
+                <div class="w-100 bg-subtle rounded-pill" style="height: 4px;">
+                    <div class="bg-primary rounded-pill h-100" style="width: {{ (amount / total_spent * 100)|int }}%"></div>
+                </div>
+                {% else %}
+                <div class="text-muted text-sm">Veri yok</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TRANSACTIONS LIST -->
+<div class="card">
+    <div class="card-header d-flex justify-between align-center">
+        <h3><i class="bi bi-receipt"></i> İşlem Geçmişi</h3>
+        <a href="{{ url_for('add_transaction') }}?place_id={{ place.id }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Yeni Harcama</a>
+    </div>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Açıklama</th>
+                    <th>Kategori</th>
+                    <th>Ödeme Yöntemi</th>
+                    <th class="text-end">Tutar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td class="text-muted">{{ t.date.strftime('%d.%m.%Y') }}</td>
+                    <td>
+                        <div class="font-weight-medium">{{ t.description or '-' }}</div>
+                        {% if t.person %}
+                        <div class="text-xs text-muted"><i class="bi bi-person"></i> {{ t.person.name }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if t.category %}
+                        <span class="badge badge-secondary" style="background-color: {{ t.category.color }}20; color: {{ t.category.color }};">
+                            {{ t.category.icon }} {{ t.category.name }}
+                        </span>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if t.bank_ref %}{{ t.bank_ref.name }}{% endif %}
+                        {% if t.card %}{{ t.card.name }}{% endif %}
+                        {% if t.transaction_type == 'cash_out' %}Nakit{% endif %}
+                    </td>
+                    <td class="text-end font-weight-bold text-danger">
+                        {{ currency_symbols[t.currency] }}{{ "%.2f"|format(t.amount) }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <i class="bi bi-shop d-block mb-2" style="font-size: 24px;"></i>
+                        Bu mekanda henüz işlem yapılmamış.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

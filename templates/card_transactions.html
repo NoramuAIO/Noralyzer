@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Kart İşlemleri - Noralyzer{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="d-flex align-center gap-3">
+        <a href="{{ url_for('cards') }}" class="btn btn-icon btn-secondary"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <h1 class="page-title"><i class="bi bi-credit-card"></i> {{ card.name }}</h1>
+            <p class="text-muted text-sm mb-0">{% if card.card_type == 'credit' %}Kredi Kartı{% else %}Banka Kartı{% endif %} • {{ card.bank.name if card.bank else 'Banka Yok' }}</p>
+        </div>
+    </div>
+    <div class="card p-2 d-flex gap-3 align-center">
+        <div class="text-end">
+            <span class="d-block text-xs text-muted uppercase">Toplam Harcama</span>
+            <span class="font-weight-bold text-danger">₺{{ "%.2f"|format(total) }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-container">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 120px;">Tarih</th>
+                        <th>Kategori</th>
+                        <th>Açıklama</th>
+                        <th>Tutar</th>
+                        <th style="width: 100px;">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td class="text-muted text-sm">{{ transaction.date.strftime('%d.%m.%Y') }}</td>
+                        <td>
+                            {% if transaction.category %}
+                            <span class="badge" style="background-color: {{ transaction.category.color }}15; color: {{ transaction.category.color }}; border: 1px solid {{ transaction.category.color }}30;">
+                                {{ transaction.category.icon }} {{ transaction.category.name }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="font-weight-medium">{{ transaction.description or 'İşlem' }}</span>
+                                {% if transaction.place or transaction.person %}
+                                <span class="text-xs text-muted">
+                                    {% if transaction.place %}<i class="bi bi-geo-alt me-1"></i>{{ transaction.place.name }}{% endif %}
+                                    {% if transaction.place and transaction.person %} • {% endif %}
+                                    {% if transaction.person %}<i class="bi bi-person me-1"></i>{{ transaction.person.name }}{% endif %}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="font-weight-bold {{ 'text-success' if transaction.transaction_type in ['income', 'cash_in', 'bank_deposit', 'crypto_sell', 'gold_sell'] else 'text-danger' }}">
+                            {{ '+' if transaction.transaction_type in ['income', 'cash_in', 'bank_deposit', 'crypto_sell', 'gold_sell'] else '-' }}
+                            {{ currency_symbols.get(transaction.currency, '') }}{{ "%.2f"|format(transaction.amount) }}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{{ url_for('edit_transaction', id=transaction.id) }}" class="btn btn-icon btn-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+                                <form action="{{ url_for('delete_transaction', id=transaction.id) }}" method="POST" onsubmit="return confirm('Silmek istediğinize emin misiniz?')">
+                                    <button type="submit" class="btn btn-icon btn-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="bi bi-receipt"></i>
+                                <p>Bu kartla yapılmış işlem bulunamadı.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

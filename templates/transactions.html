@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}İşlemler - Noralyzer{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-arrow-left-right"></i> İşlemler</h1>
+    <a href="{{ url_for('add_transaction') }}" class="btn btn-primary"><i class="bi bi-plus"></i> Yeni İşlem</a>
+</div>
+
+<!-- Filters -->
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="d-flex flex-wrap gap-2 align-center">
+            <div class="flex-1" style="min-width: 200px;">
+                <select name="category" class="form-select">
+                    <option value="">Tüm Kategoriler</option>
+                    {% for c in categories %}<option value="{{ c.id }}" {% if request.args.get('category') == c.id|string %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="flex-1" style="min-width: 150px;">
+                <select name="person" class="form-select">
+                    <option value="">Tüm Kişiler</option>
+                    {% for p in persons %}<option value="{{ p.id }}" {% if request.args.get('person') == p.id|string %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="flex-1" style="min-width: 150px;">
+                <select name="owner" class="form-select">
+                    <option value="">Tüm Sahipler</option>
+                    {% for p in persons %}<option value="{{ p.id }}" {% if request.args.get('owner') == p.id|string %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="flex-1" style="min-width: 150px;">
+                <select name="place" class="form-select">
+                    <option value="">Tüm Yerler</option>
+                    {% for p in places %}<option value="{{ p.id }}" {% if request.args.get('place') == p.id|string %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div style="width: 140px;">
+                <input type="date" name="date_from" class="form-control" value="{{ request.args.get('date_from', '') }}" placeholder="Başlangıç">
+            </div>
+            <div style="width: 140px;">
+                <input type="date" name="date_to" class="form-control" value="{{ request.args.get('date_to', '') }}" placeholder="Bitiş">
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+            <a href="{{ url_for('transactions') }}" class="btn btn-secondary btn-icon" title="Temizle"><i class="bi bi-x-lg"></i></a>
+        </form>
+    </div>
+</div>
+
+<!-- Transactions Table -->
+<div class="card">
+    <div class="card-body">
+        {% if transactions.items %}
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Tür</th>
+                        <th>Açıklama</th>
+                        <th>Kategori</th>
+                        <th>İşlem Sahibi</th>
+                        <th>Kişi</th>
+                        <th>Tutar</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in transactions.items %}
+                    <tr>
+                        <td>{{ t.date.strftime('%d.%m.%Y') }}{% if t.time %} <span class="text-muted text-xs">{{ t.time }}</span>{% endif %}</td>
+                        <td><span class="badge badge-secondary">{{ t.transaction_type }}</span></td>
+                        <td>{{ t.description or '-' }}</td>
+                        <td>{% if t.category %}<span class="badge badge-primary">{{ t.category.icon }} {{ t.category.name }}</span>{% else %}-{% endif %}</td>
+                        <td>
+                            {% if t.owner %}
+                            <span class="badge badge-info"><i class="bi bi-person-badge"></i> {{ t.owner.name }}</span>
+                            {% else %}
+                            <span class="text-muted">Genel</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if t.person %}<span class="badge badge-success">{{ t.person.name }}</span>{% endif %}
+                            {% if t.place %}<span class="badge badge-warning">{{ t.place.name }}</span>{% endif %}
+                        </td>
+                        <td class="{% if t.transaction_type in ['income', 'cash_in', 'bank_deposit'] %}text-success{% else %}text-danger{% endif %}">
+                            {{ currency_symbols.get(t.currency, '') }}{{ "%.2f"|format(t.amount) }}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{{ url_for('edit_transaction', id=t.id) }}" class="btn btn-icon btn-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+                                <form action="{{ url_for('delete_transaction', id=t.id) }}" method="POST" data-confirm="Bu işlemi silmek istediğinize emin misiniz?">
+                                    <button type="submit" class="btn btn-icon btn-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="pagination">
+            {% if transactions.has_prev %}
+            <a href="?page={{ transactions.prev_num }}" class="pagination-item"><i class="bi bi-chevron-left"></i></a>
+            {% endif %}
+            <span class="pagination-item active">{{ transactions.page }} / {{ transactions.pages }}</span>
+            {% if transactions.has_next %}
+            <a href="?page={{ transactions.next_num }}" class="pagination-item"><i class="bi bi-chevron-right"></i></a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <p>İşlem bulunamadı</p>
+            <a href="{{ url_for('add_transaction') }}" class="btn btn-primary btn-sm">İlk İşlemi Ekle</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

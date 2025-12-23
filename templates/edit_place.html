@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Mekan Düzenle - Noralyzer{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-pencil-square"></i> Mekan Düzenle</h1>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-group">
+                <label class="form-label">Mekan Adı *</label>
+                <input type="text" name="name" class="form-control" required value="{{ place.name }}">
+            </div>
+            
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label class="form-label">Kategori</label>
+                    <input type="text" name="category" class="form-control" value="{{ place.category or '' }}" list="placeCategories">
+                    <datalist id="placeCategories">
+                        <option value="Market">
+                        <option value="Kafe">
+                        <option value="Restoran">
+                        <option value="Benzinlik">
+                        <option value="Giyim">
+                        <option value="Teknoloji">
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Adres / Konum</label>
+                    <input type="text" name="address" class="form-control" value="{{ place.address or '' }}">
+                </div>
+            </div>
+            
+            <div class="form-check mb-4">
+                <label class="custom-checkbox">
+                    <input type="checkbox" name="is_favorite" value="1" {% if place.is_favorite %}checked{% endif %}>
+                    <span class="checkbox-mark"></span>
+                    <span class="label-text">Favorilere Ekle</span>
+                </label>
+            </div>
+            
+            <div class="d-flex justify-end gap-2">
+                <a href="{{ url_for('places') }}" class="btn btn-secondary">İptal</a>
+                <button type="submit" class="btn btn-primary">Güncelle</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

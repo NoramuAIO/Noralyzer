@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+{% block title %}Ayarlar - Noralyzer{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-gear"></i> Ayarlar</h1>
+</div>
+
+<div class="settings-layout">
+    <!-- Settings Navigation -->
+    <div class="settings-nav">
+        <div class="card">
+            <div class="card-body p-2 d-flex flex-column gap-1">
+                <button class="settings-nav-item active" data-target="general"><i class="bi bi-sliders"></i> Genel</button>
+                <button class="settings-nav-item" data-target="banks"><i class="bi bi-bank"></i> Bankalar</button>
+                <button class="settings-nav-item" data-target="cards"><i class="bi bi-credit-card"></i> Kartlar</button>
+                <button class="settings-nav-item" data-target="contacts"><i class="bi bi-people"></i> Kişiler & Yerler</button>
+                <button class="settings-nav-item" data-target="categories"><i class="bi bi-tags"></i> Kategoriler</button>
+                <button class="settings-nav-item" data-target="tags"><i class="bi bi-bookmark"></i> Etiketler</button>
+                <button class="settings-nav-item" data-target="budgets"><i class="bi bi-wallet2"></i> Bütçeler</button>
+                <button class="settings-nav-item" data-target="currencies"><i class="bi bi-currency-exchange"></i> Para Birimleri</button>
+                <button class="settings-nav-item" data-target="backup"><i class="bi bi-cloud-download"></i> Yedekleme</button>
+                <hr class="my-1 border-color-subtle">
+                <button class="settings-nav-item danger" data-target="danger"><i class="bi bi-exclamation-triangle"></i> Tehlikeli Bölge</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Content -->
+    <div class="settings-content">
+        <!-- General -->
+        <div id="general" class="settings-panel active">
+            <div class="card">
+                <div class="card-header"><h3><i class="bi bi-sliders"></i> Genel Ayarlar</h3></div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('save_settings') }}">
+                        <input type="hidden" name="section" value="general">
+                        <div class="grid grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Varsayılan Para Birimi</label>
+                                <select name="default_currency" class="form-select">
+                                    <option value="TRY">TRY - Türk Lirası</option>
+                                    <option value="USD">USD - Amerikan Doları</option>
+                                    <option value="EUR">EUR - Euro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Sayfa Başına İşlem</label>
+                                <select name="items_per_page" class="form-select">
+                                    <option value="20">20</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-end mt-4">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Kaydet</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banks -->
+        <div id="banks" class="settings-panel">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="bi bi-bank"></i> Bankalar</h3>
+                    <a href="{{ url_for('add_bank') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Yeni Ekle</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if banks %}
+                    <div class="table-container">
+                        <table class="table table-hover">
+                            <thead><tr><th style="width: 50px;"></th><th>Banka</th><th>Hesap Sahibi</th><th>IBAN</th><th class="text-end">İşlemler</th></tr></thead>
+                            <tbody>
+                                {% for bank in banks %}
+                                <tr>
+                                    <td>
+                                        <button class="btn btn-icon btn-text list-action-btn {{ 'text-warning' if bank.is_favorite else 'text-muted' }}" onclick="toggleFavorite('banks', {{ bank.id }}, this)">
+                                            <i class="bi bi-star{{ '-fill' if bank.is_favorite }}"></i>
+                                        </button>
+                                    </td>
+                                    <td class="font-weight-medium">{{ bank.name }}</td>
+                                    <td>{{ bank.holder_name or '-' }}</td>
+                                    <td><code class="text-accent">{{ bank.iban or '-' }}</code></td>
+                                    <td class="text-end">
+                                        <div class="d-flex gap-1 justify-end">
+                                            <a href="{{ url_for('edit_bank', id=bank.id) }}" class="btn btn-icon btn-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+                                            <form action="{{ url_for('delete_bank', id=bank.id) }}" method="POST" onsubmit="return confirm('Bu bankayı silmek istediğinize emin misiniz?')">
+                                                <button type="submit" class="btn btn-icon btn-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state py-5">
+                        <i class="bi bi-bank text-muted" style="font-size: 2rem;"></i>
+                        <p class="text-muted mt-2">Henüz banka hesabı eklenmemiş.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cards -->
+        <div id="cards" class="settings-panel">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="bi bi-credit-card"></i> Kartlar</h3>
+                    <a href="{{ url_for('add_card') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Yeni Ekle</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if cards %}
+                    <div class="table-container">
+                        <table class="table table-hover">
+                            <thead><tr><th style="width: 50px;"></th><th>Kart</th><th>Tür</th><th>Banka</th><th class="text-end">İşlemler</th></tr></thead>
+                            <tbody>
+                                {% for card in cards %}
+                                <tr>
+                                    <td>
+                                        <button class="btn btn-icon btn-text list-action-btn {{ 'text-warning' if card.is_favorite else 'text-muted' }}" onclick="toggleFavorite('cards', {{ card.id }}, this)">
+                                            <i class="bi bi-star{{ '-fill' if card.is_favorite }}"></i>
+                                        </button>
+                                    </td>
+                                    <td class="font-weight-medium">
+                                        {{ card.name }}
+                                        {% if card.last_four %}<span class="text-muted text-xs ms-1">(*{{ card.last_four }})</span>{% endif %}
+                                    </td>
+                                    <td><span class="badge {{ 'badge-danger' if card.card_type == 'credit' else 'badge-success' }}">{{ 'Kredi Kartı' if card.card_type == 'credit' else 'Banka Kartı' }}</span></td>
+                                    <td>{{ card.bank.name if card.bank else '-' }}</td>
+                                    <td class="text-end">
+                                        <div class="d-flex gap-1 justify-end">
+                                            <a href="{{ url_for('card_transactions', id=card.id) }}" class="btn btn-icon btn-secondary btn-sm" title="İşlemler"><i class="bi bi-list-ul"></i></a>
+                                            <a href="{{ url_for('edit_card', id=card.id) }}" class="btn btn-icon btn-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+                                            <form action="{{ url_for('delete_card', id=card.id) }}" method="POST" onsubmit="return confirm('Bu kartı silmek istediğinize emin misiniz?')">
+                                                <button type="submit" class="btn btn-icon btn-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state py-5">
+                        <i class="bi bi-credit-card text-muted" style="font-size: 2rem;"></i>
+                        <p class="text-muted mt-2">Henüz kart eklenmemiş.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Contacts (Persons & Places) -->
+        <div id="contacts" class="settings-panel">
+            <div class="grid grid-2">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h3><i class="bi bi-people"></i> Kişiler</h3>
+                        <a href="{{ url_for('persons') }}" class="btn btn-icon btn-secondary btn-sm me-1" title="Tümünü Gör"><i class="bi bi-arrows-fullscreen"></i></a>
+                        <a href="{{ url_for('add_person') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i></a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                            {% for person in persons %}
+                            <div class="list-group-item d-flex justify-between align-center p-3 border-bottom border-color-subtle">
+                                <div class="d-flex align-center gap-3">
+                                    <div class="avatar-sm rounded-circle bg-primary-subtle text-primary d-flex align-center justify-center font-weight-bold" style="width: 32px; height: 32px;">
+                                        {{ person.name[:1].upper() }}
+                                    </div>
+                                    <div>
+                                        <div class="font-weight-medium">{{ person.name }}</div>
+                                        {% if person.phone %}<div class="text-xs text-muted">{{ person.phone }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <a href="{{ url_for('edit_person', id=person.id) }}" class="btn btn-icon btn-text btn-sm text-muted"><i class="bi bi-pencil"></i></a>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="p-4 text-center text-muted">Kişi bulunamadı.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h3><i class="bi bi-geo-alt"></i> Yerler</h3>
+                        <a href="{{ url_for('places') }}" class="btn btn-icon btn-secondary btn-sm me-1" title="Tümünü Gör"><i class="bi bi-arrows-fullscreen"></i></a>
+                        <a href="{{ url_for('add_place') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i></a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                            {% for place in places %}
+                            <div class="list-group-item d-flex justify-between align-center p-3 border-bottom border-color-subtle">
+                                <div class="d-flex align-center gap-3">
+                                    <div class="avatar-sm rounded bg-secondary-subtle text-secondary d-flex align-center justify-center" style="width: 32px; height: 32px;">
+                                        <i class="bi bi-shop"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-weight-medium">{{ place.name }}</div>
+                                        {% if place.category %}<div class="text-xs text-muted">{{ place.category }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <a href="{{ url_for('edit_place', id=place.id) }}" class="btn btn-icon btn-text btn-sm text-muted"><i class="bi bi-pencil"></i></a>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="p-4 text-center text-muted">Yer bulunamadı.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Categories -->
+        <div id="categories" class="settings-panel">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="bi bi-tags"></i> Kategoriler</h3>
+                    <a href="{{ url_for('add_category') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Yeni Ekle</a>
+                </div>
+                <div class="card-body">
+                    <div class="grid grid-3 gap-3">
+                        {% for cat in categories %}
+                        <div class="category-card p-3 rounded-lg border border-color-subtle d-flex justify-between align-center" style="background: {{ cat.color }}10; border-left: 4px solid {{ cat.color }};">
+                            <div class="d-flex align-center gap-2">
+                                <span class="text-lg">{{ cat.icon }}</span>
+                                <span class="font-weight-medium">{{ cat.name }}</span>
+                            </div>
+                            <div class="d-flex gap-1">
+                                <a href="{{ url_for('edit_category', id=cat.id) }}" class="btn btn-icon btn-text btn-sm text-muted hover-text-primary"><i class="bi bi-pencil"></i></a>
+                                <form action="{{ url_for('delete_category', id=cat.id) }}" method="POST" onsubmit="return confirm('Bu kategoriyi silmek istediğinize emin misiniz?')">
+                                    <button type="submit" class="btn btn-icon btn-text btn-sm text-muted hover-text-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="col-span-3 text-center py-5 text-muted">Kategori bulunamadı.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tags -->
+        <div id="tags" class="settings-panel">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="bi bi-bookmark"></i> Etiketler</h3>
+                    <a href="{{ url_for('add_tag') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Yeni Ekle</a>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for tag in tags %}
+                        <div class="badge badge-lg d-flex align-center gap-2 pr-1" style="background-color: {{ tag.color }}20; color: {{ tag.color }}; border: 1px solid {{ tag.color }}40;">
+                            <span>{{ tag.name }}</span>
+                            <form action="{{ url_for('delete_tag', id=tag.id) }}" method="POST" onsubmit="return confirm('Silmek istediğinize emin misiniz?')" style="display:inline;">
+                                <button type="submit" class="btn btn-icon btn-xs text-current hover-opacity-75"><i class="bi bi-x mb-0" style="font-size: 1.25rem;"></i></button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">Henüz etiket eklenmemiş.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Budgets -->
+        <div id="budgets" class="settings-panel">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="bi bi-wallet2"></i> Bütçeler</h3>
+                    <a href="{{ url_for('add_budget') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Yeni Ekle</a>
+                </div>
+                <div class="card-body">
+                    <div class="grid grid-2 gap-3">
+                        {% for item in budget_stats %}
+                        <div class="budget-card p-3 rounded-lg border border-color-subtle bg-subtle">
+                            <div class="d-flex justify-between align-start mb-2">
+                                <div>
+                                    <h4 class="font-weight-bold mb-1">{{ item.budget.name }}</h4>
+                                    <span class="text-xs text-muted uppercase tracking-wide">{{ item.budget.category.name if item.budget.category else 'GENEL BÜTÇE' }}</span>
+                                </div>
+                                <form action="{{ url_for('delete_budget', id=item.budget.id) }}" method="POST" onsubmit="return confirm('Bu bütçeyi silmek istediğinize emin misiniz?')">
+                                    <button type="submit" class="btn btn-icon btn-text btn-sm text-muted hover-text-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                            
+                            <div class="d-flex justify-between align-end mb-1">
+                                <span class="text-sm {{ 'text-danger font-weight-bold' if item.percentage > 100 else 'text-muted' }}">
+                                    ₺{{ "%.0f"|format(item.spent) }}
+                                </span>
+                                <span class="text-sm font-weight-medium">₺{{ "%.0f"|format(item.budget.amount) }}</span>
+                            </div>
+                            
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar {{ 'bg-danger' if item.percentage > 90 else ('bg-warning' if item.percentage > 70 else 'bg-success') }}" 
+                                     style="width: {{ [item.percentage, 100]|min }}%"></div>
+                            </div>
+                            <div class="text-end mt-1">
+                                <span class="text-xs {{ 'text-danger' if item.percentage > 90 else 'text-muted' }}">{{ "%.0f"|format(item.percentage) }}%</span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="col-span-2 text-center py-5 text-muted">Tanımlı bütçe bulunamadı.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Currencies -->
+        <div id="currencies" class="settings-panel">
+            <div class="card">
+                <div class="card-header"><h3><i class="bi bi-currency-exchange"></i> Para Birimleri</h3></div>
+                <div class="card-body">
+                    <div class="grid grid-3 gap-4">
+                        <div>
+                            <h4 class="text-xs text-muted uppercase tracking-wide mb-3 font-weight-bold">Döviz (Fiat)</h4>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-center gap-2"><i class="bi bi-check-circle-fill text-success"></i> ₺ TRY - Türk Lirası</div>
+                                <div class="d-flex align-center gap-2"><i class="bi bi-check-circle-fill text-success"></i> $ USD - Amerikan Doları</div>
+                                <div class="d-flex align-center gap-2"><i class="bi bi-check-circle-fill text-success"></i> € EUR - Euro</div>
+                                <div class="d-flex align-center gap-2"><i class="bi bi-check-circle-fill text-success"></i> C$ CAD - Kanada Doları</div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-xs text-muted uppercase tracking-wide mb-3 font-weight-bold">Kripto Para</h4>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-center gap-2"><i class="bi bi-check-circle-fill text-success"></i> ₿ BTC - Bitcoin</div>
+                                <div class="d-flex align-center gap-2"><i class="bi bi-check-circle-fill text-success"></i> Ð DOGE - Dogecoin</div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-xs text-muted uppercase tracking-wide mb-3 font-weight-bold">Değerli Madenler</h4>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-center gap-2"><i class="bi bi-check-circle-fill text-success"></i> Tam Altın</div>
+                                <div class="d-flex align-center gap-2"><i class="bi bi-check-circle-fill text-success"></i> Gram Altın</div>
+                                <div class="d-flex align-center gap-2"><i class="bi bi-check-circle-fill text-success"></i> Çeyrek Altın</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-subtle rounded text-sm text-muted">
+                        <i class="bi bi-info-circle me-1"></i> Şu an için sadece varsayılan para birimleri aktiftir. Özel kur ekleme özelliği yakında gelecektir.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backup -->
+        <div id="backup" class="settings-panel">
+            <div class="card">
+                <div class="card-header"><h3><i class="bi bi-cloud-download"></i> Yedekleme & Geri Yükleme</h3></div>
+                <div class="card-body">
+                    <div class="grid grid-2 gap-4">
+                        <div class="p-4 rounded-lg border border-color-subtle bg-subtle text-center hover-bg-primary transition-all">
+                            <i class="bi bi-box-arrow-down text-primary mb-3" style="font-size: 2.5rem;"></i>
+                            <h4 class="mb-2">Dışa Aktar (Backup)</h4>
+                            <p class="text-muted text-sm mb-4">Tüm verilerinizi JSON formatında cihazınıza indirin.</p>
+                            <a href="{{ url_for('export_data') }}" class="btn btn-primary w-100"><i class="bi bi-download"></i> Verileri İndir</a>
+                        </div>
+                        
+                        <div class="p-4 rounded-lg border border-color-subtle bg-subtle text-center hover-bg-primary transition-all">
+                            <i class="bi bi-box-arrow-in-up text-success mb-3" style="font-size: 2.5rem;"></i>
+                            <h4 class="mb-2">İçe Aktar (Restore)</h4>
+                            <p class="text-muted text-sm mb-3">Daha önce aldığınız yedeği yükleyin.</p>
+                            <form action="{{ url_for('import_data') }}" method="POST" enctype="multipart/form-data" class="d-flex flex-column gap-2">
+                                <input type="file" name="file" class="form-control" accept=".json" required>
+                                <button type="submit" class="btn btn-success w-100"><i class="bi bi-upload"></i> Yedeği Yükle</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Danger Zone -->
+        <div id="danger" class="settings-panel">
+            <div class="card border-danger">
+                <div class="card-header bg-danger-subtle text-danger">
+                    <h3 class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Tehlikeli Bölge</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-between align-center mb-4 p-3 rounded border border-danger-subtle">
+                        <div>
+                            <h4 class="text-danger mb-1 font-weight-bold">Tüm İşlemleri Sil</h4>
+                            <p class="text-muted text-sm mb-0">Bu işlem geri alınamaz. Sadece işlemleri siler, hesapları ve ayarları korur.</p>
+                        </div>
+                        <form action="{{ url_for('delete_all_transactions') }}" method="POST" onsubmit="return confirm('DİKKAT! Tüm işlem geçmişiniz silinecek. Bu işlem geri alınamaz. Emin misiniz?')">
+                            <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> İşlemleri Sıfırla</button>
+                        </form>
+                    </div>
+                    
+                    <div class="d-flex justify-between align-center p-3 rounded border border-danger-subtle">
+                        <div>
+                            <h4 class="text-danger mb-1 font-weight-bold">Fabrika Ayarlarına Dön</h4>
+                            <p class="text-muted text-sm mb-0">Tüm veriler (hesaplar, kişiler, kategoriler, işlemler) kalıcı olarak silinecektir.</p>
+                        </div>
+                        <form action="{{ url_for('reset_database') }}" method="POST" onsubmit="return confirm('ÇOK ÖNEMLİ UYARI! Tüm verileriniz kalıcı olarak silinecek ve uygulama sıfırlanacaktır. Devam etmek istiyor musunuz?')">
+                            <button type="submit" class="btn btn-outline-danger"><i class="bi bi-radioactive"></i> Tamamen Sıfırla</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleFavorite(type, id, btn) {
+    // Type: 'banks', 'cards', etc. Singular logic handled by backend usually
+    let endpointType = type; // bank/card URLs usually singular in ID param but route might be plural
+    // Let's deduce correct endpoint based on app.py
+    // banks/<id>/toggle-favorite
+    // cards/<id>/toggle-favorite
+    
+    fetch(`/${endpointType}/${id}/toggle-favorite`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            const icon = btn.querySelector('i');
+            if (data.is_favorite) {
+                icon.classList.remove('bi-star');
+                icon.classList.add('bi-star-fill');
+                btn.classList.remove('text-muted');
+                btn.classList.add('text-warning');
+            } else {
+                icon.classList.remove('bi-star-fill');
+                icon.classList.add('bi-star');
+                btn.classList.remove('text-warning');
+                btn.classList.add('text-muted');
+            }
+        });
+}
+</script>
+{% endblock %}

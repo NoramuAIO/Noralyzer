@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}Raporlar - Noralyzer{% endblock %}
+{% block content %}
+<div class="page-header justify-between">
+    <h1 class="page-title"><i class="bi bi-bar-chart-line"></i> Raporlar</h1>
+    
+    <div class="d-flex gap-2">
+        <!-- Category Filter -->
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button">
+                <i class="bi bi-tag"></i>
+                {% if current_category %}{{ current_category.icon | safe }} {{ current_category.name }}
+                {% else %}Tüm Kategoriler
+                {% endif %}
+            </button>
+            <div class="dropdown-menu">
+                <a href="{{ url_for('reports', range=current_range) }}" class="dropdown-item">Tüm Kategoriler</a>
+                <a href="{{ url_for('reports', range=current_range, category='uncategorized') }}" class="dropdown-item"><i class="bi bi-question-circle"></i> Kategorisiz</a>
+                {% for cat in categories %}
+                <a href="{{ url_for('reports', range=current_range, category=cat.id) }}" class="dropdown-item">{{ cat.icon }} {{ cat.name }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Date Range Filter -->
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button">
+                <i class="bi bi-calendar"></i>
+                {% if current_range == '6m' %}Son 6 Ay
+                {% elif current_range == '12m' %}Son 12 Ay
+                {% elif current_range == 'custom' %}Özel Tarih
+                {% else %}Tarih Seç
+                {% endif %}
+            </button>
+            <div class="dropdown-menu">
+                <a href="{{ url_for('reports', range='6m', category=request.args.get('category', '')) }}" class="dropdown-item">Son 6 Ay</a>
+                <a href="{{ url_for('reports', range='12m', category=request.args.get('category', '')) }}" class="dropdown-item">Son 12 Ay</a>
+                <a href="#" class="dropdown-item" onclick="document.getElementById('customDateForm').style.display='block'">Özel...</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="customDateForm" action="{{ url_for('reports') }}" class="card mb-4 p-3" style="display: none;">
+    <input type="hidden" name="range" value="custom">
+    <div class="d-flex gap-2 align-center">
+        <label>Başlangıç:</label>
+        <input type="date" name="start_date" class="form-control" required>
+        <button type="submit" class="btn btn-primary btn-sm">Uygula</button>
+    </div>
+</form>
+
+<!-- Summary Stats -->
+<div class="grid grid-3 mb-4">
+    <div class="stat-card income">
+        <div class="stat-card-icon"><i class="bi bi-arrow-down-circle"></i></div>
+        <div class="stat-card-label">Toplam Gelir</div>
+        <div class="stat-card-value">₺{{ "%.2f"|format(total_income) }}</div>
+    </div>
+    <div class="stat-card expense">
+        <div class="stat-card-icon"><i class="bi bi-arrow-up-circle"></i></div>
+        <div class="stat-card-label">Toplam Gider</div>
+        <div class="stat-card-value">₺{{ "%.2f"|format(total_expense) }}</div>
+    </div>
+    <div class="stat-card balance">
+        <div class="stat-card-icon"><i class="bi bi-wallet2"></i></div>
+        <div class="stat-card-label">Net Bakiye</div>
+        <div class="stat-card-value {% if total_income - total_expense >= 0 %}text-success{% else %}text-danger{% endif %}">
+            {% if total_income - total_expense >= 0 %}+{% endif %}₺{{ "%.2f"|format(total_income - total_expense) }}
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-2 mb-4">
+    <div class="card">
+        <div class="card-header"><h3><i class="bi bi-pie-chart"></i> Gelir / Gider Dağılımı</h3></div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="incomeExpenseChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3><i class="bi bi-graph-up"></i> Aylık Analiz</h3></div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="monthlyTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><h3><i class="bi bi-tags"></i> Kategori Bazlı Harcamalar</h3></div>
+    <div class="card-body">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Kategori</th>
+                        <th class="text-end">Toplam Tutar</th>
+                        <th class="text-end">Oran</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat in category_stats %}
+                    <tr>
+                        <td>{{ cat.category.icon }} {{ cat.category.name }}</td>
+                        <td class="text-end text-danger font-weight-bold">₺{{ "%.2f"|format(cat.total) }}</td>
+                        <td class="text-end text-muted">{{ "%.1f"|format(cat.percentage) }}%</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" class="text-center text-muted">Veri yok</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Data Container -->
+<div id="report-data" 
+     data-total-income="{{ total_income }}"
+     data-total-expense="{{ total_expense }}"
+     data-chart-data='{{ chart_data | tojson | safe }}'
+     style="display: none;"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Data from Backend via Data Attributes
+    const dataContainer = document.getElementById('report-data');
+    let chartData = {labels: [], income: [], expense: []};
+    
+    try {
+        const rawData = dataContainer.dataset.chartData;
+        if (rawData && rawData !== '{}') {
+            chartData = JSON.parse(rawData);
+        }
+    } catch(e) { 
+        console.error("Chart data parse error", e); 
+    }
+    
+    const totalIncome = parseFloat(dataContainer.dataset.totalIncome) || 0;
+    const totalExpense = parseFloat(dataContainer.dataset.totalExpense) || 0;
+
+    // Dropdown toggle logic
+    const dropdownToggle = document.querySelector('.dropdown-toggle');
+    if (dropdownToggle) {
+        dropdownToggle.addEventListener('click', function() {
+            this.nextElementSibling.classList.toggle('show');
+        });
+    }
+
+    // Close dropdown when clicking outside
+    window.addEventListener('click', function(e) {
+        if (!e.target.matches('.dropdown-toggle')) {
+            var dropdowns = document.getElementsByClassName("dropdown-menu");
+            for (var i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+    });
+
+    // Income/Expense Chart (Doughnut)
+    const ctx1 = document.getElementById('incomeExpenseChart');
+    if (ctx1 && (totalIncome > 0 || totalExpense > 0)) {
+        new Chart(ctx1.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Gelir', 'Gider'],
+                datasets: [{
+                    data: [totalIncome, totalExpense],
+                    backgroundColor: ['#10b981', '#ef4444'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#94a3b8' } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ₺' + context.parsed.toLocaleString('tr-TR', {minimumFractionDigits: 2});
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } else if (ctx1) {
+        ctx1.parentElement.innerHTML = '<div class="empty-state text-muted p-4"><i class="bi bi-pie-chart"></i><p>Veri yok</p></div>';
+    }
+
+    // Monthly Trend Chart (Line)
+    const ctx2 = document.getElementById('monthlyTrendChart');
+    if (ctx2 && chartData.labels && chartData.labels.length > 0) {
+        new Chart(ctx2.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'Gelir',
+                    data: chartData.income,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Gider',
+                    data: chartData.expense,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.05)' }, 
+                        ticks: { 
+                            color: '#94a3b8',
+                            callback: function(value) {
+                                return '₺' + value.toLocaleString('tr-TR');
+                            }
+                        } 
+                    },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                },
+                plugins: {
+                    legend: { labels: { color: '#94a3b8' } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ₺' + context.parsed.y.toLocaleString('tr-TR', {minimumFractionDigits: 2});
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } else if (ctx2) {
+        ctx2.parentElement.innerHTML = '<div class="empty-state text-muted p-4"><i class="bi bi-graph-up"></i><p>Aylık veri yok</p></div>';
+    }
+});
+</script>
+{% endblock %}

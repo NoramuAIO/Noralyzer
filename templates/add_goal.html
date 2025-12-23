@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Yeni Hedef - Noralyzer{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-plus-circle"></i> Yeni Tasarruf Hedefi</h1>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-group">
+                <label class="form-label">Hedef Adı *</label>
+                <input type="text" name="name" class="form-control" required placeholder="Örn: Araba, Tatil...">
+            </div>
+            
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label class="form-label">Hedeflenen Tutar *</label>
+                    <input type="number" step="0.01" name="target_amount" class="form-control" required placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Manuel Başlangıç Tutarı</label>
+                    <input type="number" step="0.01" name="current_amount" class="form-control" placeholder="0.00">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Otomatik Biriktirme Kategorisi</label>
+                <select name="category_id" class="form-select">
+                    <option value="">Kategori Seçme (Sadece manuel)</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}">{{ cat.icon }} {{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+                <p class="text-xs text-muted mt-1">Seçilen kategoriye eklenen "Gelir" türündeki işlemler otomatik olarak bu hedefe sayılacaktır.</p>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Bitiş Tarihi</label>
+                <input type="date" name="deadline" class="form-control">
+            </div>
+            
+            <div class="d-flex justify-end gap-2 mt-4">
+                <a href="{{ url_for('goals') }}" class="btn btn-secondary">İptal</a>
+                <button type="submit" class="btn btn-primary">Kaydet</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}{{ person.name }} Adına İşlemler - Noralyzer{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="d-flex align-center gap-3">
+        <a href="{{ url_for('persons') }}" class="btn btn-secondary btn-icon"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <h1 class="page-title"><i class="bi bi-person-badge"></i> {{ person.name }} Adına Yapılan İşlemler</h1>
+            <p class="text-muted text-sm mt-1">Bu kişi tarafından yapılan tüm işlemlerin özeti</p>
+        </div>
+    </div>
+</div>
+
+<!-- STATS -->
+<div class="grid grid-3 mb-4">
+    <div class="stat-card income">
+        <div class="stat-card-label">Toplam Gelir</div>
+        <div class="stat-card-value text-success">₺{{ "%.2f"|format(total_income) }}</div>
+    </div>
+    
+    <div class="stat-card expense">
+        <div class="stat-card-label">Toplam Gider</div>
+        <div class="stat-card-value text-danger">₺{{ "%.2f"|format(total_expense) }}</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-card-label">Net Bakiye</div>
+        <div class="stat-card-value {% if balance >= 0 %}text-success{% else %}text-danger{% endif %}">
+            {% if balance >= 0 %}+{% endif %}₺{{ "%.2f"|format(balance) }}
+        </div>
+    </div>
+</div>
+
+<!-- Category Breakdown -->
+{% if category_breakdown %}
+<div class="card mb-4">
+    <div class="card-header"><h3><i class="bi bi-pie-chart"></i> Kategori Dağılımı</h3></div>
+    <div class="card-body">
+        <div class="grid grid-responsive">
+            {% for cat_name, cat_icon, amount in category_breakdown %}
+            <div class="d-flex align-center gap-3 p-3 bg-subtle rounded">
+                <span class="text-2xl">{{ cat_icon }}</span>
+                <div class="flex-1">
+                    <div class="font-weight-medium">{{ cat_name }}</div>
+                    <div class="text-muted text-sm">₺{{ "%.2f"|format(amount) }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="d-flex gap-2 mb-4">
+    <a href="{{ url_for('add_transaction') }}?owner_id={{ person.id }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Yeni İşlem Ekle ({{ person.name }} adına)</a>
+    <a href="{{ url_for('transactions') }}?owner={{ person.id }}" class="btn btn-secondary"><i class="bi bi-filter"></i> Tüm İşlemleri Filtrele</a>
+</div>
+
+<!-- TRANSACTIONS LIST -->
+<div class="card">
+    <div class="card-header">
+        <h3><i class="bi bi-list-ul"></i> İşlem Geçmişi ({{ transactions|length }} işlem)</h3>
+    </div>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Tür</th>
+                    <th>Açıklama</th>
+                    <th>Kategori</th>
+                    <th>İlgili Kişi</th>
+                    <th class="text-end">Tutar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td class="text-muted">{{ t.date.strftime('%d.%m.%Y') }}</td>
+                    <td>
+                        {% if t.transaction_type in ['income', 'cash_in', 'bank_deposit'] %}
+                        <span class="badge badge-success"><i class="bi bi-arrow-down-left"></i> Giriş</span>
+                        {% else %}
+                        <span class="badge badge-danger"><i class="bi bi-arrow-up-right"></i> Çıkış</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="font-weight-medium">{{ t.description or '-' }}</div>
+                        {% if t.bank_ref or t.card or t.place %}
+                        <div class="text-xs text-muted">
+                            {% if t.bank_ref %}{{ t.bank_ref.name }}{% endif %}
+                            {% if t.card %}{{ t.card.name }}{% endif %}
+                            {% if t.place %} • @{{ t.place.name }}{% endif %}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if t.category %}
+                        <span class="badge badge-secondary" style="background-color: {{ t.category.color }}20; color: {{ t.category.color }};">
+                            {{ t.category.icon }} {{ t.category.name }}
+                        </span>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if t.person %}
+                        <span class="badge badge-info">{{ t.person.name }}</span>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td class="text-end font-weight-bold {% if t.transaction_type in ['income', 'cash_in', 'bank_deposit'] %}text-success{% else %}text-danger{% endif %}">
+                        {{ currency_symbols[t.currency] }}{{ "%.2f"|format(t.amount) }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox d-block mb-2" style="font-size: 24px;"></i>
+                        Bu kişi adına henüz işlem yapılmamış.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

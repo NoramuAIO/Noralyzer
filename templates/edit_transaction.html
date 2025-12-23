@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}İşlem Düzenle - Noralyzer{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-pencil-square"></i> İşlem Düzenle</h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <!-- Transaction Owner Selection (Prominent & Beautiful) -->
+            <div class="owner-selection-box mb-4">
+                <div class="owner-selection-header">
+                    <div class="owner-icon-wrapper">
+                        <i class="bi bi-person-badge-fill"></i>
+                    </div>
+                    <div>
+                        <h3 class="owner-title">İşlemi Yapan Kişi</h3>
+                        <p class="owner-subtitle">Bu işlem kimin hesabına kaydedilsin?</p>
+                    </div>
+                </div>
+                <div class="owner-options">
+                    {% for p in persons %}
+                    <label class="owner-option">
+                        <input type="radio" name="owner_id" value="{{ p.id }}" {% if transaction.owner_id == p.id %}checked{% endif %}>
+                        <span class="owner-option-content">
+                            <span class="owner-avatar" style="background: linear-gradient(135deg, hsl({{ loop.index0 * 60 }}, 70%, 50%), hsl({{ loop.index0 * 60 + 30 }}, 70%, 40%));">
+                                {{ p.name[:1] }}
+                            </span>
+                            <span class="owner-name">{{ p.name }}</span>
+                            {% if p.is_favorite %}<i class="bi bi-star-fill text-warning text-xs"></i>{% endif %}
+                        </span>
+                    </label>
+                    {% endfor %}
+                    <label class="owner-option">
+                        <input type="radio" name="owner_id" value="" {% if not transaction.owner_id %}checked{% endif %}>
+                        <span class="owner-option-content">
+                            <span class="owner-avatar" style="background: linear-gradient(135deg, #64748b, #475569);">
+                                <i class="bi bi-house-fill"></i>
+                            </span>
+                            <span class="owner-name">Genel</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid grid-responsive mb-4">
+                <div class="form-group" style="grid-column: span 2;">
+                    <label class="form-label">İşlem Türü *</label>
+                    <select name="transaction_type" class="form-select" required>
+                        {% for value, label in transaction_types %}
+                        <option value="{{ value }}" {% if transaction.transaction_type == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tutar *</label>
+                    <input type="number" name="amount" class="form-control text-lg font-weight-bold" step="0.01" value="{{ transaction.amount }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Para Birimi *</label>
+                    <select name="currency" class="form-select" required>
+                        <optgroup label="Döviz">
+                            {% for c in currencies.fiat %}<option value="{{ c }}" {% if transaction.currency == c %}selected{% endif %}>{{ currency_names[c] }}</option>{% endfor %}
+                        </optgroup>
+                        <optgroup label="Kripto">
+                            {% for c in currencies.crypto %}<option value="{{ c }}" {% if transaction.currency == c %}selected{% endif %}>{{ currency_names[c] }}</option>{% endfor %}
+                        </optgroup>
+                        <optgroup label="Altın">
+                            {% for c in currencies.gold %}<option value="{{ c }}" {% if transaction.currency == c %}selected{% endif %}>{{ currency_names[c] }}</option>{% endfor %}
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="grid grid-responsive mb-4">
+                <div class="form-group">
+                    <label class="form-label">Açıklama</label>
+                    <input type="text" name="description" class="form-control" value="{{ transaction.description or '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tarih</label>
+                    <input type="date" name="date" class="form-control" value="{{ transaction.date.strftime('%Y-%m-%d') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Saat</label>
+                    <input type="time" name="time" class="form-control" value="{{ transaction.time or '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kategori</label>
+                    <select name="category_id" class="form-select">
+                        <option value="">Seçiniz</option>
+                        {% for c in categories %}<option value="{{ c.id }}" {% if transaction.category_id == c.id %}selected{% endif %}>{{ c.icon }} {{ c.name }}</option>{% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="grid grid-4 mb-4">
+                <div class="form-group">
+                    <label class="form-label">Banka</label>
+                    <select name="bank_id" class="form-select">
+                        <option value="">Seçiniz</option>
+                        {% for b in banks %}<option value="{{ b.id }}" {% if transaction.bank_id == b.id %}selected{% endif %}>{{ b.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kart</label>
+                    <select name="card_id" class="form-select">
+                        <option value="">Seçiniz</option>
+                        {% for c in cards %}<option value="{{ c.id }}" {% if transaction.card_id == c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kişi</label>
+                    <select name="person_id" class="form-select">
+                        <option value="">Seçiniz</option>
+                        {% for p in persons %}<option value="{{ p.id }}" {% if transaction.person_id == p.id %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Yer</label>
+                    <select name="place_id" class="form-select">
+                        <option value="">Seçiniz</option>
+                        {% for p in places %}<option value="{{ p.id }}" {% if transaction.place_id == p.id %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-end gap-2">
+                <a href="{{ url_for('transactions') }}" class="btn btn-secondary">İptal</a>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check"></i> Güncelle</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

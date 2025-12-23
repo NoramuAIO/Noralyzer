@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Noralyzer{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-grid-1x2"></i> Dashboard</h1>
+    <a href="{{ url_for('add_transaction') }}" class="btn btn-primary">
+        <i class="bi bi-plus"></i> Yeni İşlem
+    </a>
+</div>
+
+<!-- Stat Cards -->
+<!-- Stat Cards -->
+<div class="grid grid-3 mb-4">
+    <div class="stat-card income">
+        <div class="stat-card-icon"><i class="bi bi-arrow-down-circle"></i></div>
+        <div class="stat-card-label">Toplam Gelir</div>
+        <div class="stat-card-value">₺{{ "%.2f"|format(total_income) }}</div>
+    </div>
+    <div class="stat-card expense">
+        <div class="stat-card-icon"><i class="bi bi-arrow-up-circle"></i></div>
+        <div class="stat-card-label">Toplam Gider</div>
+        <div class="stat-card-value">₺{{ "%.2f"|format(total_expense) }}</div>
+    </div>
+    <div class="stat-card balance">
+        <div class="stat-card-icon"><i class="bi bi-wallet2"></i></div>
+        <div class="stat-card-label">Net Bakiye</div>
+        <div class="stat-card-value">₺{{ "%.2f"|format(balance) }}</div>
+    </div>
+</div>
+
+<div class="grid grid-2">
+    <!-- Recent Transactions -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="bi bi-clock-history"></i> Son İşlemler</h3>
+            <a href="{{ url_for('transactions') }}" class="btn btn-sm btn-secondary">Tümü</a>
+        </div>
+        <div class="card-body">
+            {% if transactions %}
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Açıklama</th>
+                            <th>İşlem Sahibi</th>
+                            <th>Tutar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in transactions %}
+                        <tr>
+                            <td>{{ t.date.strftime('%d.%m') }}{% if t.time %} <span class="text-muted text-xs">{{ t.time }}</span>{% endif %}</td>
+                            <td>
+                                {% if t.category %}
+                                    <span class="badge badge-secondary">{{ t.category.icon }} {{ t.category.name }}</span>
+                                {% endif %}
+                                {{ t.description or '-' }}
+                            </td>
+                            <td>
+                                {% if t.owner %}
+                                <span class="badge badge-info"><i class="bi bi-person-badge"></i> {{ t.owner.name }}</span>
+                                {% else %}
+                                <span class="text-muted text-xs">Genel</span>
+                                {% endif %}
+                            </td>
+                            <td class="{% if t.transaction_type in ['income', 'cash_in', 'bank_deposit'] %}text-success{% else %}text-danger{% endif %}">
+                                {{ currency_symbols.get(t.currency, '') }}{{ "%.2f"|format(t.amount) }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <p>Henüz işlem yok</p>
+                <a href="{{ url_for('add_transaction') }}" class="btn btn-primary btn-sm">İlk İşlemi Ekle</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Category Chart -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="bi bi-pie-chart"></i> Kategori Dağılımı</h3>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Budgets & Goals -->
+<div class="grid grid-2 mt-3">
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="bi bi-wallet2"></i> Bütçeler</h3>
+            <a href="{{ url_for('settings') }}#budgets" class="btn btn-sm btn-secondary">Yönet</a>
+        </div>
+        <div class="card-body">
+            {% if budgets %}
+                {% for b in budgets %}
+                <div class="mb-2">
+                    <div class="d-flex justify-between align-center mb-1">
+                        <span>{{ b.name }}</span>
+                        <span class="text-muted">₺{{ "%.0f"|format(b.amount) }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar primary" style="width: 50%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <p class="text-muted">Bütçe tanımlanmamış</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="bi bi-bullseye"></i> Tasarruf Hedefleri</h3>
+            <a href="{{ url_for('goals') }}" class="btn btn-sm btn-secondary">Yönet</a>
+        </div>
+        <div class="card-body">
+            {% if goals %}
+                {% for g in goals %}
+                <div class="mb-2">
+                    <div class="d-flex justify-between align-center mb-1">
+                        <span>{{ g.name }}</span>
+                        <span class="text-muted">₺{{ "%.0f"|format(g.current_amount) }} / ₺{{ "%.0f"|format(g.target_amount) }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar success" style="width: {{ (g.current_amount / g.target_amount * 100) if g.target_amount > 0 else 0 }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <p class="text-muted">Hedef tanımlanmamış</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Chart Data -->
+<div id="chart-data" 
+     data-categories='{{ category_data | tojson | safe }}'
+     style="display: none;"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dataContainer = document.getElementById('chart-data');
+    let categoryData = [];
+    
+    try {
+        const rawData = dataContainer.dataset.categories;
+        if (rawData) {
+            categoryData = JSON.parse(rawData);
+        }
+    } catch(e) { 
+        console.error("Category data parse error", e); 
+    }
+    
+    const ctx = document.getElementById('categoryChart');
+    
+    if (ctx && categoryData && categoryData.length > 0) {
+        const labels = categoryData.map(item => item[0]);
+        const values = categoryData.map(item => item[1]);
+        
+        // Generate colors
+        const colors = [
+            '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', 
+            '#ec4899', '#f43f5e', '#ef4444', '#f97316', 
+            '#eab308', '#84cc16', '#22c55e', '#10b981'
+        ];
+        
+        new Chart(ctx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors.slice(0, labels.length),
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        position: 'right', 
+                        labels: { 
+                            color: '#94a3b8',
+                            padding: 15,
+                            usePointStyle: true
+                        } 
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ₺' + context.parsed.toLocaleString('tr-TR', {minimumFractionDigits: 2});
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } else if (ctx) {
+        ctx.parentElement.innerHTML = '<div class="empty-state text-muted p-4"><i class="bi bi-pie-chart"></i><p>Kategori verisi yok</p></div>';
+    }
+});
+</script>
+{% endblock %}

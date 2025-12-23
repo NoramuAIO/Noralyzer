@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Bankalar - Noralyzer{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-bank"></i> Bankalar</h2>
+    <a href="{{ url_for('add_bank') }}" class="btn btn-primary"><i class="bi bi-plus"></i> Yeni Banka</a>
+</div>
+
+<div class="grid-responsive">
+    {% for item in bank_stats %}
+    <div class="card h-100">
+        <div class="card-header">
+            <h3>
+                <button class="favorite-btn" onclick="toggleFavorite('bank', {{ item.bank.id }}, this)">
+                    {% if item.bank.is_favorite %}<i class="bi bi-star-fill text-warning"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+                </button>
+                {{ item.bank.name }}
+            </h3>
+            <div class="d-flex gap-1">
+                <a href="{{ url_for('edit_bank', id=item.bank.id) }}" class="btn btn-secondary btn-icon btn-sm"><i class="bi bi-pencil"></i></a>
+                <form action="{{ url_for('delete_bank', id=item.bank.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Silmek istediğinize emin misiniz?')">
+                    <button type="submit" class="btn btn-danger btn-icon btn-sm"><i class="bi bi-trash"></i></button>
+                </form>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if item.bank.holder_name %}<p class="mb-1 text-muted"><small>Hesap Sahibi:</small> <span class="text-main">{{ item.bank.holder_name }}</span></p>{% endif %}
+            {% if item.bank.iban %}<p class="mb-4 text-muted"><small>IBAN:</small> <code class="text-primary">{{ item.bank.iban }}</code></p>{% endif %}
+            
+            <div class="grid-3 text-center" style="gap: 8px;">
+                <div>
+                    <small class="text-muted d-block uppercase mb-1" style="font-size: 10px;">Giriş</small>
+                    <span class="text-success font-weight-bold">₺{{ "%.0f"|format(item.income) }}</span>
+                </div>
+                <div>
+                    <small class="text-muted d-block uppercase mb-1" style="font-size: 10px;">Çıkış</small>
+                    <span class="text-danger font-weight-bold">₺{{ "%.0f"|format(item.expense) }}</span>
+                </div>
+                <div>
+                    <small class="text-muted d-block uppercase mb-1" style="font-size: 10px;">Bakiye</small>
+                    <span class="{% if item.balance >= 0 %}text-success{% else %}text-danger{% endif %} font-weight-bold">₺{{ "%.0f"|format(item.balance) }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-body text-center py-5">
+            <div class="empty-state">
+                <i class="bi bi-bank" style="font-size: 48px; margin-bottom: 20px; display: block;"></i>
+                <p class="text-muted mb-4">Henüz banka eklenmemiş.</p>
+                <a href="{{ url_for('add_bank') }}" class="btn btn-primary">İlk Bankayı Ekle</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleFavorite(type, id, el) {
+    fetch(`/${type}s/${id}/toggle-favorite`, {method: 'POST'})
+        .then(r => r.json())
+        .then(data => {
+            el.innerHTML = data.is_favorite ? '<i class="bi bi-star-fill text-warning"></i>' : '<i class="bi bi-star"></i>';
+        });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Banka Düzenle - Noralyzer{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-pencil-square"></i> Banka Düzenle</h1>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-group">
+                <label class="form-label">Banka Adı *</label>
+                <input type="text" name="name" class="form-control" required value="{{ bank.name }}">
+            </div>
+            
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label class="form-label">Hesap Sahibi</label>
+                    <input type="text" name="holder_name" class="form-control" value="{{ bank.holder_name or '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Hesap Türü</label>
+                    <select name="account_type" class="form-select">
+                        <option value="Vadesiz TL" {% if bank.account_type == 'Vadesiz TL' %}selected{% endif %}>Vadesiz TL</option>
+                        <option value="Vadeli TL" {% if bank.account_type == 'Vadeli TL' %}selected{% endif %}>Vadeli TL</option>
+                        <option value="Döviz (USD)" {% if bank.account_type == 'Döviz (USD)' %}selected{% endif %}>Döviz (USD)</option>
+                        <option value="Döviz (EUR)" {% if bank.account_type == 'Döviz (EUR)' %}selected{% endif %}>Döviz (EUR)</option>
+                        <option value="Altın Hesabı" {% if bank.account_type == 'Altın Hesabı' %}selected{% endif %}>Altın Hesabı</option>
+                        <option value="Yatırım Hesabı" {% if bank.account_type == 'Yatırım Hesabı' %}selected{% endif %}>Yatırım Hesabı</option>
+                        <option value="Diğer" {% if bank.account_type == 'Diğer' %}selected{% endif %}>Diğer</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">IBAN</label>
+                <input type="text" name="iban" class="form-control font-monospace" value="{{ bank.iban or '' }}" maxlength="34">
+            </div>
+            
+            <div class="form-check mb-4">
+                <label class="custom-checkbox">
+                    <input type="checkbox" name="is_favorite" value="1" {% if bank.is_favorite %}checked{% endif %}>
+                    <span class="checkbox-mark"></span>
+                    <span class="label-text">Favorilere Ekle</span>
+                </label>
+            </div>
+            
+            <div class="d-flex justify-end gap-2">
+                <a href="{{ url_for('banks') }}" class="btn btn-secondary">İptal</a>
+                <button type="submit" class="btn btn-primary">Güncelle</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
