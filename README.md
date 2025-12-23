@@ -2,8 +2,6 @@
 
 Noralyzer, kişisel gelir ve giderlerinizi takip etmenizi, bütçenizi yönetmenizi ve finansal durumunuzu görselleştirmenizi sağlayan modern, kullanıcı dostu bir web uygulamasıdır.
 
-![Noralyzer Dashboard](https://hizliresim.com/6ajv0rx)
-
 ## 🚀 Özellikler
 
 - **Detaylı İşlem Takibi:** Gelir, gider, transfer ve varlık alım/satım işlemlerini kolayca kaydedin.
@@ -67,17 +65,7 @@ Projeyi yerel makinenizde çalıştırmak için aşağıdaki adımları izleyin:
 
 5.  **Tarayıcıda Açın:**
     Tarayıcınızda `http://127.0.0.1:5000` adresine gidin.
-
-## 📸 Ekran Görüntüleri
-
-| Dashboard                                                        | İşlem Ekleme                                                            |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| ![Dashboard](https://hizliresim.com/6ajv0rx) | ![Add Transaction](https://hizliresim.com/i7r1r28) |
-
-| Raporlar                                                      | Kişiler                                                      |
-| ------------------------------------------------------------- | ------------------------------------------------------------ |
-| ![Reports](https://hizliresim.com/oyvah4v) | ![Persons](https://hizliresim.com/55k3bpf) |
-
+    
 ## 🤝 Katkıda Bulunma
 
 Katkıda bulunmak isterseniz, lütfen bir "issue" açın veya "pull request" gönderin. Her türlü katkıya açığız!
