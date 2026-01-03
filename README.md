@@ -2,8 +2,6 @@
 
 Noralyzer, kişisel gelir ve giderlerinizi takip etmenizi, bütçenizi yönetmenizi ve finansal durumunuzu görselleştirmenizi sağlayan modern, kullanıcı dostu bir web uygulamasıdır.
 
-![Noralyzer Dashboard](https://via.placeholder.com/1200x600?text=Noralyzer+Dashboard+Preview)
-
 ## 🚀 Özellikler
 
 ### Temel Özellikler
@@ -25,18 +23,6 @@ Uygulama artık Flask Blueprints kullanarak modüler bir yapıya sahip:
 - **App Factory Pattern:** Test edilebilir ve genişletilebilir yapı
 - **Temiz Kod Organizasyonu:** models.py, utils.py, routes/ ayrımı
 
-#### 💾 Veritabanı Konfigürasyonu
-Tüm konfigürasyon verileri artık veritabanında:
-- **Para Birimleri (Currency):** TRY, USD, EUR, BTC, Altın vb. - dinamik yönetim
-- **İşlem Tipleri (TransactionType):** Harcama, Gelir, Transfer vb. - özelleştirilebilir
-- **Varsayılan Kategoriler:** Veritabanından yüklenen kategori şablonları
-
-#### 🎨 Abyss Ultra Modern UI
-- Koyu tema (Dark Mode)
-- Glassmorphism efektleri
-- Neon aksanlar ve gradientler
-- Responsive tasarım
-
 ## 🛠️ Teknolojiler
 
 | Kategori | Teknoloji |
@@ -52,7 +38,7 @@ Tüm konfigürasyon verileri artık veritabanında:
 
 1. **Repoyu Klonlayın:**
    ```bash
-   git clone https://github.com/kullaniciadi/noralyzer.git
+   git clone https://github.com/NoramuAIO/noralyzer.git
    cd noralyzer
    ```
 
@@ -101,25 +87,6 @@ Tüm konfigürasyon verileri artık veritabanında:
 - `TransactionType` - İşlem tipleri (code, name)
 - `Setting` - Uygulama ayarları
 
-## 📸 Ekran Görüntüleri
-
-| Dashboard | İşlem Ekleme |
-|-----------|--------------|
-| ![Dashboard](https://via.placeholder.com/400x300?text=Dashboard) | ![Add Transaction](https://via.placeholder.com/400x300?text=Islem+Ekle) |
-
-| Raporlar | Ayarlar |
-|----------|---------|
-| ![Reports](https://via.placeholder.com/400x300?text=Raporlar) | ![Settings](https://via.placeholder.com/400x300?text=Ayarlar) |
-
-## 🗺️ Yol Haritası
-
-- [ ] Kullanıcı kimlik doğrulama (Login/Register)
-- [ ] Flask-Migrate ile veritabanı migrasyonları
-- [ ] REST API endpoints
-- [ ] Döviz kuru API entegrasyonu
-- [ ] PWA desteği (offline çalışma)
-- [ ] Mobil uygulama
-
 ## 🤝 Katkıda Bulunma
 
 1. Fork'layın
@@ -128,10 +95,7 @@ Tüm konfigürasyon verileri artık veritabanında:
 4. Push'layın (`git push origin feature/YeniOzellik`)
 5. Pull Request açın
 
-## 📝 Lisans
-
-Bu proje [MIT](LICENSE) lisansı ile lisanslanmıştır.
-
 ---
 
 _Noralyzer - Finansal Özgürlüğünüzü Yönetin._
+
