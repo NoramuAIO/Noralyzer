@@ -3,7 +3,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-bank"></i> Bankalar</h2>
-    <a href="{{ url_for('add_bank') }}" class="btn btn-primary"><i class="bi bi-plus"></i> Yeni Banka</a>
+    <a href="{{ url_for('banks.add_bank') }}" class="btn btn-primary"><i class="bi bi-plus"></i> Yeni Banka</a>
 </div>
 
 <div class="grid-responsive">
@@ -17,8 +17,8 @@
                 {{ item.bank.name }}
             </h3>
             <div class="d-flex gap-1">
-                <a href="{{ url_for('edit_bank', id=item.bank.id) }}" class="btn btn-secondary btn-icon btn-sm"><i class="bi bi-pencil"></i></a>
-                <form action="{{ url_for('delete_bank', id=item.bank.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Silmek istediğinize emin misiniz?')">
+                <a href="{{ url_for('banks.edit_bank', id=item.bank.id) }}" class="btn btn-secondary btn-icon btn-sm"><i class="bi bi-pencil"></i></a>
+                <form action="{{ url_for('banks.delete_bank', id=item.bank.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Silmek istediğinize emin misiniz?')">
                     <button type="submit" class="btn btn-danger btn-icon btn-sm"><i class="bi bi-trash"></i></button>
                 </form>
             </div>
@@ -49,7 +49,7 @@
             <div class="empty-state">
                 <i class="bi bi-bank" style="font-size: 48px; margin-bottom: 20px; display: block;"></i>
                 <p class="text-muted mb-4">Henüz banka eklenmemiş.</p>
-                <a href="{{ url_for('add_bank') }}" class="btn btn-primary">İlk Bankayı Ekle</a>
+                <a href="{{ url_for('banks.add_bank') }}" class="btn btn-primary">İlk Bankayı Ekle</a>
             </div>
         </div>
     </div>

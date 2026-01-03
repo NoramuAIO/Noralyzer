@@ -3,7 +3,7 @@
 {% block content %}
 <div class="page-header">
     <h1 class="page-title"><i class="bi bi-arrow-left-right"></i> İşlemler</h1>
-    <a href="{{ url_for('add_transaction') }}" class="btn btn-primary"><i class="bi bi-plus"></i> Yeni İşlem</a>
+    <a href="{{ url_for('transactions.add_transaction') }}" class="btn btn-primary"><i class="bi bi-plus"></i> Yeni İşlem</a>
 </div>
 
 <!-- Filters -->
@@ -42,7 +42,7 @@
                 <input type="date" name="date_to" class="form-control" value="{{ request.args.get('date_to', '') }}" placeholder="Bitiş">
             </div>
             <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
-            <a href="{{ url_for('transactions') }}" class="btn btn-secondary btn-icon" title="Temizle"><i class="bi bi-x-lg"></i></a>
+            <a href="{{ url_for('transactions.transactions') }}" class="btn btn-secondary btn-icon" title="Temizle"><i class="bi bi-x-lg"></i></a>
         </form>
     </div>
 </div>
@@ -88,8 +88,8 @@
                         </td>
                         <td>
                             <div class="d-flex gap-1">
-                                <a href="{{ url_for('edit_transaction', id=t.id) }}" class="btn btn-icon btn-secondary btn-sm"><i class="bi bi-pencil"></i></a>
-                                <form action="{{ url_for('delete_transaction', id=t.id) }}" method="POST" data-confirm="Bu işlemi silmek istediğinize emin misiniz?">
+                                <a href="{{ url_for('transactions.edit_transaction', id=t.id) }}" class="btn btn-icon btn-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+                                <form action="{{ url_for('transactions.delete_transaction', id=t.id) }}" method="POST" data-confirm="Bu işlemi silmek istediğinize emin misiniz?">
                                     <button type="submit" class="btn btn-icon btn-danger btn-sm"><i class="bi bi-trash"></i></button>
                                 </form>
                             </div>
@@ -114,7 +114,7 @@
         <div class="empty-state">
             <i class="bi bi-inbox"></i>
             <p>İşlem bulunamadı</p>
-            <a href="{{ url_for('add_transaction') }}" class="btn btn-primary btn-sm">İlk İşlemi Ekle</a>
+            <a href="{{ url_for('transactions.add_transaction') }}" class="btn btn-primary btn-sm">İlk İşlemi Ekle</a>
         </div>
         {% endif %}
     </div>

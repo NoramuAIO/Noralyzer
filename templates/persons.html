@@ -3,7 +3,7 @@
 {% block content %}
 <div class="page-header">
     <h1 class="page-title"><i class="bi bi-people"></i> Kişiler</h1>
-    <a href="{{ url_for('add_person') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Yeni Kişi</a>
+    <a href="{{ url_for('persons.add_person') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Yeni Kişi</a>
 </div>
 
 <div class="grid-responsive">
@@ -32,10 +32,10 @@
             {% endif %}
 
             <div class="d-flex gap-2 mt-auto">
-                <a href="{{ url_for('owner_report', id=person.id) }}" class="btn btn-primary btn-sm flex-1"><i class="bi bi-list-task"></i> İşlemler</a>
-                <a href="{{ url_for('person_report', id=person.id) }}" class="btn btn-secondary btn-sm flex-1"><i class="bi bi-bar-chart"></i> Rapor</a>
-                <a href="{{ url_for('edit_person', id=person.id) }}" class="btn btn-secondary btn-icon btn-sm"><i class="bi bi-pencil"></i></a>
-                <form action="{{ url_for('delete_person', id=person.id) }}" method="POST" onsubmit="return confirm('Silmek istediğinize emin misiniz?')" style="display:inline;">
+                <a href="{{ url_for('persons.owner_report', id=person.id) }}" class="btn btn-primary btn-sm flex-1"><i class="bi bi-list-task"></i> İşlemler</a>
+                <a href="{{ url_for('persons.person_report', id=person.id) }}" class="btn btn-secondary btn-sm flex-1"><i class="bi bi-bar-chart"></i> Rapor</a>
+                <a href="{{ url_for('persons.edit_person', id=person.id) }}" class="btn btn-secondary btn-icon btn-sm"><i class="bi bi-pencil"></i></a>
+                <form action="{{ url_for('persons.delete_person', id=person.id) }}" method="POST" onsubmit="return confirm('Silmek istediğinize emin misiniz?')" style="display:inline;">
                     <button type="submit" class="btn btn-danger btn-icon btn-sm"><i class="bi bi-trash"></i></button>
                 </form>
             </div>
@@ -47,7 +47,7 @@
             <div class="empty-state">
                 <i class="bi bi-people" style="font-size: 48px; margin-bottom: 20px; display: block;"></i>
                 <p class="text-muted mb-4">Henüz kayıtlı kişi yok.</p>
-                <a href="{{ url_for('add_person') }}" class="btn btn-primary">İlk Kişiyi Ekle</a>
+                <a href="{{ url_for('persons.add_person') }}" class="btn btn-primary">İlk Kişiyi Ekle</a>
             </div>
         </div>
     </div>

@@ -3,7 +3,7 @@
 {% block content %}
 <div class="page-header">
     <h1 class="page-title"><i class="bi bi-grid-1x2"></i> Dashboard</h1>
-    <a href="{{ url_for('add_transaction') }}" class="btn btn-primary">
+    <a href="{{ url_for('transactions.add_transaction') }}" class="btn btn-primary">
         <i class="bi bi-plus"></i> Yeni İşlem
     </a>
 </div>
@@ -33,7 +33,7 @@
     <div class="card">
         <div class="card-header">
             <h3><i class="bi bi-clock-history"></i> Son İşlemler</h3>
-            <a href="{{ url_for('transactions') }}" class="btn btn-sm btn-secondary">Tümü</a>
+            <a href="{{ url_for('transactions.transactions') }}" class="btn btn-sm btn-secondary">Tümü</a>
         </div>
         <div class="card-body">
             {% if transactions %}
@@ -76,7 +76,7 @@
             <div class="empty-state">
                 <i class="bi bi-inbox"></i>
                 <p>Henüz işlem yok</p>
-                <a href="{{ url_for('add_transaction') }}" class="btn btn-primary btn-sm">İlk İşlemi Ekle</a>
+                <a href="{{ url_for('transactions.add_transaction') }}" class="btn btn-primary btn-sm">İlk İşlemi Ekle</a>
             </div>
             {% endif %}
         </div>
@@ -101,7 +101,7 @@
     <div class="card">
         <div class="card-header">
             <h3><i class="bi bi-wallet2"></i> Bütçeler</h3>
-            <a href="{{ url_for('settings') }}#budgets" class="btn btn-sm btn-secondary">Yönet</a>
+            <a href="{{ url_for('main.settings') }}#budgets" class="btn btn-sm btn-secondary">Yönet</a>
         </div>
         <div class="card-body">
             {% if budgets %}
@@ -125,7 +125,7 @@
     <div class="card">
         <div class="card-header">
             <h3><i class="bi bi-bullseye"></i> Tasarruf Hedefleri</h3>
-            <a href="{{ url_for('goals') }}" class="btn btn-sm btn-secondary">Yönet</a>
+            <a href="{{ url_for('budgets.goals') }}" class="btn btn-sm btn-secondary">Yönet</a>
         </div>
         <div class="card-body">
             {% if goals %}
